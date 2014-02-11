@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Stock Ticker</title>
+
+<script type="text/javascript" src="jquery-1.8.1.js"></script>
+<script type="text/javascript">
+	$(document).ready(
+			function() {
+				Highcharts.setOptions({
+					global : {
+						useUTC : false
+					}
+				});
+
+				var chart;
+				document.chart = new Highcharts.Chart({
+					chart : {
+						renderTo : 'container',
+						defaultSeriesType : 'spline',
+						marginRight : 10,
+						plotBackgroundColor : '#FFFFFF',
+						plotShadow : true,
+						animation : {
+							duration : 200
+						}
+					},
+					title : {
+						text : 'Stock Price'
+					},
+					xAxis : {
+						type : 'datetime',
+						tickPixelInterval : 150
+					},
+					yAxis : {
+						title : {
+							text : 'Price ($)'
+						},
+						plotLines : [ {
+							value : 0,
+							width : 2,
+							color : '#808080'
+						} ]
+					},
+					tooltip : {
+						formatter : function() {
+							return '<b>'
+									+ this.series.name
+									+ '</b><br/>'
+									+ Highcharts.dateFormat(
+											'%Y-%m-%d %H:%M:%S', this.x)
+									+ '<br/>$'
+									+ Highcharts.numberFormat(this.y, 2);
+						}
+					},
+					legend : {
+						enabled : true
+					},
+					exporting : {
+						enabled : false
+					},
+					series : []
+				});
+			});
+</script>
+</head>
+<body>
+	<script type="text/javascript" src="js/highcharts.js"></script>
+	<script type="text/javascript" src="js/modules/exporting.js"></script>
+
+	<div id="container" style="width: 80%; height: 80%; margin: 0 auto"></div>
+
+	<script type="text/javascript">
+		var wsUri = "ws://" + location.host
+				+ "${pageContext.request.contextPath}/websocket/stock";
+		console.log("CONNECT CALLED");
+		websocket = new WebSocket(wsUri);
+		websocket.onopen = function(event) {
+			onOpen(event)
+		};
+		websocket.onclose = function(event) {
+			onClose(event)
+		};
+		websocket.onerror = function(event) {
+			onError(event)
+		};
+
+		var seriesArray = new Array();
+		var ready = false;
+
+		websocket.onmessage = function(event) {
+			console.log("MESSAGE " + event);
+			var object = JSON.parse(event.data);
+			if (typeof object.stocks != 'undefined' || object.stocks) {
+				seriesArray = object.stocks;
+				for (stock in seriesArray) {
+					var seriesName = seriesArray[stock];
+					document.chart.addSeries({
+						name : seriesName,
+						data : defaultData()
+					});
+				}
+			} else {
+				var x = (new Date()).getTime();
+				var y = object.value;
+				var series = seriesArray.indexOf(object.symbol);
+				console.log("Price Update " + object.symbol + ":"
+						+ object.value + ":" + series);
+				document.chart.series[series].addPoint([ x, y ], true, true,
+						false);
+			}
+		}
+		function defaultData() {
+			var data = [];
+			var time = (new Date()).getTime();
+			var i;
+			for (i = -19; i <= 0; i++) {
+				data.push({
+					x : time + i * 1000,
+					y : 0
+				});
+			}
+			return data;
+		}
+		function onOpen(event) {
+			console.log("OPEN " + event);
+			websocket.send("open");
+		}
+
+		function onError(event) {
+			console.log("ERROR " + event);
+		}
+
+		function onClose(event) {
+			console.log("CLOSE " + event);
+		}
+	</script>
+
+</body>
+</html>
