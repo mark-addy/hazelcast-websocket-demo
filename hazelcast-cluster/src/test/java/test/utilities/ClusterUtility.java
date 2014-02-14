@@ -1,7 +1,5 @@
 package test.utilities;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -21,17 +19,6 @@ public class ClusterUtility {
 	private final LinkedList<HazelcastInstance> instances = new LinkedList<HazelcastInstance>();
 	
 	private final Config config;
-	
-	public final static LinkedHashMap<String, StockRecord> stockMap = new LinkedHashMap<String, StockRecord>() {{
-		put("C2B2", new StockRecord("C2B2", "C2B2 Consulting Limited", new BigDecimal(8.31D).setScale(2, RoundingMode.HALF_UP)));
-		put("TPK", new StockRecord("TPK", "Travis Perkins Limited", new BigDecimal(7.62D).setScale(2, RoundingMode.HALF_UP)));
-		put("ORL", new StockRecord("ORL", "Oracle", new BigDecimal(4.32D).setScale(2, RoundingMode.HALF_UP)));
-		put("BPL", new StockRecord("BPL", "British Petroleum", new BigDecimal(3.45D).setScale(2, RoundingMode.HALF_UP)));
-		put("IBM", new StockRecord("IBM", "IBM Computers", new BigDecimal(1.99D).setScale(2, RoundingMode.HALF_UP)));
-		put("DEB", new StockRecord("DEB", "Debenhams", new BigDecimal(0.77D).setScale(2, RoundingMode.HALF_UP)));
-		put("TCG", new StockRecord("TCG", "Thomson Cook Group", new BigDecimal(6.25D).setScale(2, RoundingMode.HALF_UP)));
-		put("TYT", new StockRecord("TYT", "Toyota", new BigDecimal(1.99D).setScale(2, RoundingMode.HALF_UP)));
-	}};
 	
 	public ClusterUtility(int clusterSize) {
         config = new Config();
@@ -63,7 +50,7 @@ public class ClusterUtility {
 		return instances.get(randomInstanceIndex);
 	}
 
-	public void populateStockDataset(String mapName, int backupCount) {
+	public void populateStockDataset(String mapName, LinkedHashMap<String, StockRecord> stockMap, int backupCount) {
         buildAndApplyMapConfig(mapName, backupCount);
         Map<String, StockRecord> map = getRandomInstance().getMap(mapName);
         for (Map.Entry<String, StockRecord> stockRecordEntry : stockMap.entrySet()) {
