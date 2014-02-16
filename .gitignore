@@ -3,3 +3,5 @@
 .settings/
 target/
 hazelcast-test/
+*.iml
+.idea
